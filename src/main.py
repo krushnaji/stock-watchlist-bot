@@ -79,9 +79,10 @@ def main(argv: list[str] | None = None) -> int:
         if not result.messages:
             log.info("No alerts to send")
             return 0
-        sent = send_messages(channel, result.messages)
-        log.info("Monitor done — %d message(s), state_changed=%s", sent, result.state_changed)
-        return 0 if sent else 1
+        sent = send_messages(channel, result.messages, pause_seconds=cfg.http_pause_seconds)
+        log.info("Monitor done — %d/%d message(s), state_changed=%s", sent, len(result.messages), result.state_changed)
+        # Partial success is OK (rate limits); state already persisted to avoid re-flood
+        return 0 if sent > 0 or not result.messages else 1
 
     except Exception as exc:  # noqa: BLE001
         log.exception("Run failed: %s", exc)

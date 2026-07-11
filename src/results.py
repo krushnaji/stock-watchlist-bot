@@ -19,17 +19,24 @@ from src.telegram import escape_md
 
 logger = logging.getLogger(__name__)
 
-# Patterns that strongly suggest a results / earnings headline
+# Patterns that strongly suggest a results / earnings headline.
+# Keep these relatively tight — stock-name check is applied separately.
 _RESULT_TITLE_PATTERNS = [
-    re.compile(r"\bQ[1-4]\b", re.I),
-    re.compile(r"\bFY\s?\d{2,4}\b", re.I),
-    re.compile(r"\b(quarterly|earnings)\b", re.I),
-    re.compile(r"\b(financial\s+)?results?\b", re.I),
-    re.compile(r"\b(net\s+)?profit\b", re.I),
-    re.compile(r"\b(revenue|turnover|PAT|EBITDA)\b", re.I),
-    re.compile(r"\b(announces?|posts?|reports?)\b.*\b(profit|revenue|result)", re.I),
-    re.compile(r"\bresult\s+(announce|declared|out)\b", re.I),
+    re.compile(r"\bQ[1-4]\b.*\b(result|results|profit|revenue|earnings|PAT)\b", re.I),
+    re.compile(r"\b(result|results|profit|revenue|earnings|PAT)\b.*\bQ[1-4]\b", re.I),
+    re.compile(r"\bFY\s?\d{2,4}\b.*\b(result|results|profit|PAT|revenue)\b", re.I),
+    re.compile(r"\b(quarterly|financial)\s+results?\b", re.I),
+    re.compile(r"\bresults?\s+(announced|announce|declared|out|live)\b", re.I),
+    re.compile(r"\b(net\s+profit|PAT)\b.*\b(crore|cr\.?|%|rises?|falls?|up|down)\b", re.I),
 ]
+
+# Reject obvious unrelated market-wide / other-company chatter
+_RESULT_NOISE = re.compile(
+    r"\b(wall street|earnings calendar|earnings season|among \d+|sensex ends|"
+    r"nifty it index|adr[s]?\b|gap-down|brokerages back|earnings week|"
+    r"results next week|board to meet on this date)\b",
+    re.I,
+)
 
 _PDF_HREF_RE = re.compile(
     r'href=["\']([^"\']+\.pdf[^"\']*)["\']',
@@ -75,8 +82,10 @@ class ResultBrief:
 
 
 def headline_is_result(title: str, keywords: Iterable[str] | None = None) -> bool:
-    """True if headline looks like earnings / quarterly results."""
+    """True if headline looks like earnings / quarterly results (not market chatter)."""
     if not title:
+        return False
+    if _RESULT_NOISE.search(title):
         return False
     for pat in _RESULT_TITLE_PATTERNS:
         if pat.search(title):
@@ -84,8 +93,28 @@ def headline_is_result(title: str, keywords: Iterable[str] | None = None) -> boo
     if keywords:
         lower = title.lower()
         for kw in keywords:
-            if kw and kw.lower() in lower:
+            if kw and len(kw) >= 5 and kw.lower() in lower:
                 return True
+    return False
+
+
+def headline_mentions_stock(title: str, symbol: str, name: str) -> bool:
+    """Require the headline to mention this stock (cuts Google News false positives)."""
+    if not title:
+        return False
+    t = title.lower()
+    sym = (symbol or "").lower().strip()
+    if sym and len(sym) >= 2 and re.search(rf"\b{re.escape(sym)}\b", t, re.I):
+        return True
+    # Name tokens (skip tiny words)
+    for part in re.split(r"[\s&/,.\-]+", name or ""):
+        token = part.strip().lower()
+        if len(token) < 4:
+            continue
+        if token in {"limited", "india", "technologies", "industries", "motors", "power"}:
+            continue
+        if token in t:
+            return True
     return False
 
 

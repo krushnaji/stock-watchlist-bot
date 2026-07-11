@@ -8,7 +8,12 @@ from dataclasses import dataclass, field
 from src.config import AppConfig
 from src.news import NewsItem, fetch_all_news, headline_has_deal_keyword
 from src.prices import PriceSnapshot, fetch_prices
-from src.results import enrich_result_item, format_result_alert, headline_is_result
+from src.results import (
+    enrich_result_item,
+    format_result_alert,
+    headline_is_result,
+    headline_mentions_stock,
+)
 from src.state import (
     is_market_open,
     load_last_prices,
@@ -195,24 +200,29 @@ def _check_news_alerts(
     seen: dict,
     alerts: list[Alert],
     snap: PriceSnapshot | None = None,
-) -> bool:
-    """Return True if state mutated."""
+) -> None:
+    """Append NEW news/deal/result alerts; always mark evaluated links as seen."""
     if (
         not cfg.alerts.enable_news
         and not cfg.alerts.enable_deal_keywords
         and not cfg.alerts.enable_result_alerts
     ):
-        return False
+        return
 
-    changed = False
     for item in items:
         if item.link in seen:
+            continue
+
+        # Always record as seen so a flood cannot repeat next run
+        mark_news_seen(seen, item.link, symbol, item.title)
+
+        # Drop Google-News noise that doesn't name this stock
+        if not headline_mentions_stock(item.title, symbol, name):
             continue
 
         is_result = headline_is_result(item.title, cfg.result_keywords)
         is_deal = headline_has_deal_keyword(item.title, cfg.deal_keywords)
 
-        # Results first (highest priority) — enrich with PDF + neutral summary
         if is_result and cfg.alerts.enable_result_alerts:
             try:
                 brief = enrich_result_item(item, cfg, snap=snap)
@@ -226,11 +236,7 @@ def _check_news_alerts(
                     f"_{escape_md(item.source)}_\n"
                     f"_Summary unavailable — open the headline link._"
                 )
-            alerts.append(
-                Alert(priority=-1, symbol=symbol, kind="result", text=text)
-            )
-            mark_news_seen(seen, item.link, symbol, item.title)
-            changed = True
+            alerts.append(Alert(priority=-1, symbol=symbol, kind="result", text=text))
             continue
 
         if is_deal and cfg.alerts.enable_deal_keywords:
@@ -247,8 +253,6 @@ def _check_news_alerts(
                     ),
                 )
             )
-            mark_news_seen(seen, item.link, symbol, item.title)
-            changed = True
         elif cfg.alerts.enable_news:
             alerts.append(
                 Alert(
@@ -263,17 +267,12 @@ def _check_news_alerts(
                     ),
                 )
             )
-            mark_news_seen(seen, item.link, symbol, item.title)
-            changed = True
-
-    return changed
 
 
 def run_monitor(cfg: AppConfig, persist: bool = True) -> MonitorResult:
     """
-    Evaluate all five alert types; persist state only when persist=True
-    (i.e. not dry-run... actually dry-run may still want to skip writes —
-    caller decides via persist).
+    Evaluate alert types; persist state when persist=True.
+    First empty seen_news run bootstraps (seeds links, no flood).
     """
     result = MonitorResult()
     seen = load_seen_news()
@@ -284,6 +283,29 @@ def run_monitor(cfg: AppConfig, persist: bool = True) -> MonitorResult:
 
     prices = fetch_prices(cfg)
     news_map = fetch_all_news(cfg)
+
+    bootstrapping = cfg.bootstrap_seen_on_empty and len(seen) == 0
+    if bootstrapping:
+        seeded = 0
+        for stock in cfg.stocks:
+            for item in news_map.get(stock.symbol) or []:
+                if item.link not in seen:
+                    mark_news_seen(seen, item.link, stock.symbol, item.title)
+                    seeded += 1
+        logger.info("Bootstrap: seeded %d news links (no alert flood)", seeded)
+        if persist:
+            save_seen_news(seen)
+            save_last_prices(price_state)
+            result.state_changed = True
+        result.messages = [
+            (
+                "*✅ Monitor primed*\n"
+                f"Seeded {seeded} existing headlines as seen.\n"
+                "Next runs will alert only on *new* items "
+                f"(max {cfg.max_alerts_per_run}/run).\n"
+            )
+        ]
+        return result
 
     alerts: list[Alert] = []
 
@@ -305,12 +327,10 @@ def run_monitor(cfg: AppConfig, persist: bool = True) -> MonitorResult:
             alerts,
             snap=snap,
         )
-    # Prune old seen news
+
     seen = prune_seen_news(seen, cfg.retention_days)
 
     if persist:
-        # Always write so daily flag resets and news pruning stick for the next run.
-        # GitHub Actions commit step no-ops when files are unchanged.
         save_seen_news(seen)
         save_last_prices(price_state)
         result.state_changed = True
@@ -320,12 +340,24 @@ def run_monitor(cfg: AppConfig, persist: bool = True) -> MonitorResult:
         return result
 
     alerts.sort(key=lambda a: (a.priority, a.symbol))
+    total = len(alerts)
+    capped = alerts[: max(1, cfg.max_alerts_per_run)]
+    if total > len(capped):
+        logger.info(
+            "Capping alerts %d → %d (max_alerts_per_run)",
+            total,
+            len(capped),
+        )
 
-    header = "*🔔 Watchlist Alerts*\n"
-    # Group into one message; telegram layer splits if needed
-    body_parts = [header] + [a.text for a in alerts]
-    # Separate alerts with blank lines
-    message = "\n\n".join(body_parts) + "\n"
-    result.messages = [message]
-    logger.info("Built %d alerts", len(alerts))
+    # One Telegram message per alert (smaller payloads, fewer 429 multi-part storms)
+    messages: list[str] = []
+    for a in capped:
+        messages.append(f"*🔔 Watchlist Alert*\n\n{a.text}\n")
+    if total > len(capped):
+        messages.append(
+            f"_...and {total - len(capped)} more new items were recorded as seen "
+            f"without pinging to avoid spam._\n"
+        )
+    result.messages = messages
+    logger.info("Built %d alerts (sending %d)", total, len(capped))
     return result

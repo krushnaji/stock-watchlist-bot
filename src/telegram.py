@@ -6,7 +6,7 @@ import logging
 import os
 import time
 from abc import ABC, abstractmethod
-from typing import Sequence
+from typing import Any, Sequence
 
 import requests
 
@@ -78,7 +78,7 @@ class TelegramChannel(DeliveryChannel):
         token: str | None = None,
         chat_id: str | None = None,
         timeout: int = 20,
-        retries: int = 3,
+        retries: int = 5,
         pause_seconds: float = 1.5,
     ) -> None:
         self.token = token or os.environ.get("TELEGRAM_BOT_TOKEN", "")
@@ -94,9 +94,13 @@ class TelegramChannel(DeliveryChannel):
 
         url = f"https://api.telegram.org/bot{self.token}/sendMessage"
         ok_all = True
-        for part in split_message(text):
+        parts = split_message(text)
+        for i, part in enumerate(parts):
             if not self._send_one(url, part):
                 ok_all = False
+            # Pace multi-part sends to reduce 429s
+            if i < len(parts) - 1:
+                time.sleep(max(self.pause_seconds, 1.0))
         return ok_all
 
     def _send_one(self, url: str, text: str) -> bool:
@@ -110,14 +114,39 @@ class TelegramChannel(DeliveryChannel):
         for attempt in range(1, self.retries + 1):
             try:
                 resp = requests.post(url, json=payload, timeout=self.timeout)
-                if resp.status_code == 200 and resp.json().get("ok"):
+                data: dict[str, Any] = {}
+                try:
+                    data = resp.json()
+                except Exception:  # noqa: BLE001
+                    data = {}
+
+                if resp.status_code == 200 and data.get("ok"):
                     return True
+
+                # Respect Telegram flood control
+                if resp.status_code == 429:
+                    retry_after = 5
+                    params = data.get("parameters") or {}
+                    try:
+                        retry_after = int(params.get("retry_after") or retry_after)
+                    except (TypeError, ValueError):
+                        pass
+                    wait = min(retry_after + 1, 90)
+                    logger.warning(
+                        "Telegram 429 — sleeping %ss (attempt %d/%d)",
+                        wait,
+                        attempt,
+                        self.retries,
+                    )
+                    time.sleep(wait)
+                    continue
+
                 logger.warning(
                     "Telegram send failed (attempt %d/%d): %s %s",
                     attempt,
                     self.retries,
                     resp.status_code,
-                    resp.text[:200],
+                    (resp.text or "")[:200],
                 )
             except Exception as exc:  # noqa: BLE001
                 last_err = exc
@@ -128,17 +157,17 @@ class TelegramChannel(DeliveryChannel):
         return False
 
 
-def get_channel(dry_run: bool, timeout: int = 20, retries: int = 3, pause: float = 1.5) -> DeliveryChannel:
+def get_channel(dry_run: bool, timeout: int = 20, retries: int = 5, pause: float = 1.5) -> DeliveryChannel:
     """Factory: dry-run printer or live Telegram."""
     if dry_run:
         return DryRunChannel()
     return TelegramChannel(timeout=timeout, retries=retries, pause_seconds=pause)
 
 
-def send_messages(channel: DeliveryChannel, messages: Sequence[str]) -> int:
+def send_messages(channel: DeliveryChannel, messages: Sequence[str], pause_seconds: float = 1.0) -> int:
     """Send a sequence of messages; return count of successes."""
     sent = 0
-    for msg in messages:
+    for i, msg in enumerate(messages):
         if not msg or not msg.strip():
             continue
         try:
@@ -146,4 +175,6 @@ def send_messages(channel: DeliveryChannel, messages: Sequence[str]) -> int:
                 sent += 1
         except Exception as exc:  # noqa: BLE001
             logger.error("Delivery failed: %s", exc)
+        if i < len(messages) - 1:
+            time.sleep(max(pause_seconds, 0.5))
     return sent

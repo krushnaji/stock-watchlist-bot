@@ -61,6 +61,8 @@ class AppConfig:
     http_timeout: int = 20
     http_retries: int = 3
     http_pause_seconds: float = 1.5
+    max_alerts_per_run: int = 12
+    bootstrap_seen_on_empty: bool = True
     alerts: AlertFlags = field(default_factory=AlertFlags)
     stocks: list[Stock] = field(default_factory=list)
     sectors: dict[str, list[Stock]] = field(default_factory=dict)
@@ -145,6 +147,8 @@ def load_config(
         http_timeout=int(http.get("timeout", 20)),
         http_retries=int(http.get("retries", 3)),
         http_pause_seconds=float(http.get("pause_seconds", 1.5)),
+        max_alerts_per_run=int(raw.get("max_alerts_per_run", 12)),
+        bootstrap_seen_on_empty=bool(raw.get("bootstrap_seen_on_empty", True)),
         alerts=alerts,
         stocks=stocks,
         sectors=by_sector,
