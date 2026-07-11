@@ -35,6 +35,9 @@ sectors:
       - symbol: BHARTIARTL
         name: Bharti Airtel
         query: "Bharti Airtel BHARTIARTL"
+      - symbol: IDEA
+        name: Vodafone Idea
+        query: "Vodafone Idea IDEA Vi"
 
   - name: Consumer / Retail
     stocks:
