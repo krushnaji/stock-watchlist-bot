@@ -16,6 +16,7 @@ from src.config import AppConfig
 from src.news import NewsItem
 from src.prices import PriceSnapshot
 from src.telegram import escape_md
+from src.screener import screener_md_link
 
 logger = logging.getLogger(__name__)
 
@@ -317,7 +318,7 @@ def format_result_alert(
     """Telegram Markdown (legacy) body for a results alert."""
     lines = [
         "🚨 *HIGH PRIORITY — Results / Earnings*",
-        f"`{escape_md(symbol)}` {escape_md(name)}",
+        f"`{escape_md(symbol)}` {escape_md(name)} · {screener_md_link(symbol)}",
         f"[{escape_md(item.title)}]({item.link})",
         f"_{escape_md(item.source)}_",
         "",

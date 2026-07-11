@@ -9,6 +9,7 @@ from zoneinfo import ZoneInfo
 from src.config import AppConfig
 from src.news import NewsItem, fetch_all_news
 from src.prices import PriceSnapshot, fetch_prices
+from src.screener import screener_md_link
 from src.telegram import escape_md
 
 logger = logging.getLogger(__name__)
@@ -141,13 +142,14 @@ def build_digest(cfg: AppConfig) -> list[str]:
         lines.append(f"*{escape_md(sector_name)}*")
         for st in sector_stocks:
             snap = prices.get(st.symbol)
+            scr = screener_md_link(st.symbol)
             if not snap or snap.current is None:
-                lines.append(f"  • {escape_md(st.symbol)} — _no data_")
+                lines.append(f"  • {escape_md(st.symbol)} — _no data_ · {scr}")
                 continue
             emoji = _change_emoji(snap.day_change_pct)
             line = (
                 f"  • *{escape_md(st.symbol)}* {_fmt_price(snap.current)} "
-                f"{emoji} {_fmt_pct(snap.day_change_pct)}"
+                f"{emoji} {_fmt_pct(snap.day_change_pct)} · {scr}"
             )
             flag = _flag_line(snap, cfg)
             if flag:

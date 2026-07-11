@@ -14,6 +14,7 @@ from src.results import (
     headline_is_result,
     headline_mentions_stock,
 )
+from src.screener import screener_md_link
 from src.state import (
     is_market_open,
     load_last_prices,
@@ -231,7 +232,7 @@ def _check_news_alerts(
                 logger.error("Result enrich failed for %s: %s", symbol, exc)
                 text = (
                     f"🚨 *HIGH PRIORITY — Results / Earnings*\n"
-                    f"`{escape_md(symbol)}` {escape_md(name)}\n"
+                    f"`{escape_md(symbol)}` {escape_md(name)} · {screener_md_link(symbol)}\n"
                     f"[{escape_md(item.title)}]({item.link})\n"
                     f"_{escape_md(item.source)}_\n"
                     f"_Summary unavailable — open the headline link._"
@@ -247,7 +248,7 @@ def _check_news_alerts(
                     kind="deal",
                     text=(
                         f"🚨 *HIGH PRIORITY — Deal keyword*\n"
-                        f"`{escape_md(symbol)}` {escape_md(name)}\n"
+                        f"`{escape_md(symbol)}` {escape_md(name)} · {screener_md_link(symbol)}\n"
                         f"[{escape_md(item.title)}]({item.link})\n"
                         f"_{escape_md(item.source)}_"
                     ),
@@ -261,7 +262,7 @@ def _check_news_alerts(
                     kind="news",
                     text=(
                         f"📰 *New headline* `{escape_md(symbol)}` "
-                        f"{escape_md(name)}\n"
+                        f"{escape_md(name)} · {screener_md_link(symbol)}\n"
                         f"[{escape_md(item.title)}]({item.link})\n"
                         f"_{escape_md(item.source)}_"
                     ),
