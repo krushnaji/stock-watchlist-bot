@@ -16,6 +16,19 @@ deal_keywords:
   - LOI
   - tender
 
+# Extra result/earnings phrases (on top of built-in Q1–Q4 / PAT / revenue patterns)
+result_keywords:
+  - quarterly results
+  - financial results
+  - earnings
+  - net profit
+  - Q1 results
+  - Q2 results
+  - Q3 results
+  - Q4 results
+  - result announced
+  - results announced
+
 digest_times:
   - "08:00"
   - "18:00"
@@ -47,3 +60,4 @@ alerts:
   enable_volume_spike: true
   enable_near_52w: true
   enable_deal_keywords: true
+  enable_result_alerts: true

@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from src.config import AppConfig
 from src.news import NewsItem, fetch_all_news, headline_has_deal_keyword
 from src.prices import PriceSnapshot, fetch_prices
+from src.results import enrich_result_item, format_result_alert, headline_is_result
 from src.state import (
     is_market_open,
     load_last_prices,
@@ -193,9 +194,14 @@ def _check_news_alerts(
     cfg: AppConfig,
     seen: dict,
     alerts: list[Alert],
+    snap: PriceSnapshot | None = None,
 ) -> bool:
     """Return True if state mutated."""
-    if not cfg.alerts.enable_news and not cfg.alerts.enable_deal_keywords:
+    if (
+        not cfg.alerts.enable_news
+        and not cfg.alerts.enable_deal_keywords
+        and not cfg.alerts.enable_result_alerts
+    ):
         return False
 
     changed = False
@@ -203,7 +209,30 @@ def _check_news_alerts(
         if item.link in seen:
             continue
 
+        is_result = headline_is_result(item.title, cfg.result_keywords)
         is_deal = headline_has_deal_keyword(item.title, cfg.deal_keywords)
+
+        # Results first (highest priority) — enrich with PDF + neutral summary
+        if is_result and cfg.alerts.enable_result_alerts:
+            try:
+                brief = enrich_result_item(item, cfg, snap=snap)
+                text = format_result_alert(symbol, name, item, brief)
+            except Exception as exc:  # noqa: BLE001
+                logger.error("Result enrich failed for %s: %s", symbol, exc)
+                text = (
+                    f"🚨 *HIGH PRIORITY — Results / Earnings*\n"
+                    f"`{escape_md(symbol)}` {escape_md(name)}\n"
+                    f"[{escape_md(item.title)}]({item.link})\n"
+                    f"_{escape_md(item.source)}_\n"
+                    f"_Summary unavailable — open the headline link._"
+                )
+            alerts.append(
+                Alert(priority=-1, symbol=symbol, kind="result", text=text)
+            )
+            mark_news_seen(seen, item.link, symbol, item.title)
+            changed = True
+            continue
+
         if is_deal and cfg.alerts.enable_deal_keywords:
             alerts.append(
                 Alert(
@@ -236,12 +265,6 @@ def _check_news_alerts(
             )
             mark_news_seen(seen, item.link, symbol, item.title)
             changed = True
-        # If only deal alerts enabled and not a deal, don't mark seen —
-        # so a later enable_news run can still surface it. If news is off
-        # but we want to avoid re-processing forever, mark seen anyway when
-        # news scanning is active via either flag... actually: if news is
-        # disabled and not a deal, skip without marking so toggling news on
-        # later still works within retention. Fine.
 
     return changed
 
@@ -273,8 +296,15 @@ def run_monitor(cfg: AppConfig, persist: bool = True) -> MonitorResult:
             _check_price_alerts(snap, cfg, entry, market_open, alerts)
 
         items = news_map.get(stock.symbol) or []
-        _check_news_alerts(stock.symbol, stock.name, items, cfg, seen, alerts)
-
+        _check_news_alerts(
+            stock.symbol,
+            stock.name,
+            items,
+            cfg,
+            seen,
+            alerts,
+            snap=snap,
+        )
     # Prune old seen news
     seen = prune_seen_news(seen, cfg.retention_days)
 

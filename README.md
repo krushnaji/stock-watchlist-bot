@@ -113,9 +113,12 @@ After monitor runs, `state/seen_news.json` and `state/last_prices.json` may get 
 - `price_move_threshold_pct` / `re_alert_step_pct` — price alert sensitivity
 - `volume_spike_ratio` — volume vs 20-day average
 - `near_52w_pct` — distance to 52-week high/low
-- `alerts.enable_*` — toggle each of the five alert types
-- `deal_keywords` — headlines that become 🚨 HIGH PRIORITY
-- `market_hours` — Asia/Kolkata session used to skip price/volume/52w when closed (news still allowed)
+- `alerts.enable_*` — toggle each alert type (`enable_result_alerts` for earnings)
+- `result_keywords` — extra phrases that mark a headline as results/earnings
+- `deal_keywords` — headlines that become 🚨 HIGH PRIORITY deal alerts
+- `market_hours` — Asia/Kolkata session used to skip price/volume/52w when closed (news/results still allowed)
+
+**Results alerts:** when a watchlist headline looks like quarterly/earnings results, Monitor sends a HIGH PRIORITY message with a short *facts-only* summary (headline, today’s price/volume reaction, numbers spotted in coverage) and a **PDF/filing link** when one is found on the article page. This is **not** buy/sell advice.
 
 Edit `watchlist.yaml` to add/remove stocks (use NSE symbols; the bot appends `.NS` for Yahoo Finance).
 

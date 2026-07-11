@@ -37,6 +37,7 @@ class AlertFlags:
     enable_volume_spike: bool = True
     enable_near_52w: bool = True
     enable_deal_keywords: bool = True
+    enable_result_alerts: bool = True
 
 
 @dataclass
@@ -46,6 +47,7 @@ class AppConfig:
     volume_spike_ratio: float = 2.5
     near_52w_pct: float = 2.0
     deal_keywords: list[str] = field(default_factory=list)
+    result_keywords: list[str] = field(default_factory=list)
     digest_times: list[str] = field(default_factory=list)
     market_start: str = "09:15"
     market_end: str = "15:30"
@@ -120,6 +122,7 @@ def load_config(
         enable_volume_spike=bool(alerts_raw.get("enable_volume_spike", True)),
         enable_near_52w=bool(alerts_raw.get("enable_near_52w", True)),
         enable_deal_keywords=bool(alerts_raw.get("enable_deal_keywords", True)),
+        enable_result_alerts=bool(alerts_raw.get("enable_result_alerts", True)),
     )
 
     cfg = AppConfig(
@@ -128,6 +131,7 @@ def load_config(
         volume_spike_ratio=float(raw.get("volume_spike_ratio", 2.5)),
         near_52w_pct=float(raw.get("near_52w_pct", 2.0)),
         deal_keywords=[str(k) for k in (raw.get("deal_keywords") or [])],
+        result_keywords=[str(k) for k in (raw.get("result_keywords") or [])],
         digest_times=[str(t) for t in (raw.get("digest_times") or [])],
         market_start=str(market.get("start", "09:15")),
         market_end=str(market.get("end", "15:30")),
