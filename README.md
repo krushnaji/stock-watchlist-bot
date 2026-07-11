@@ -16,7 +16,7 @@ All delivery is via **Telegram**. Data comes from free sources only: **yfinance*
 | Mode | When | Contents |
 |------|------|----------|
 | `digest` | 08:00 & 18:00 IST (Mon–Fri) | NIFTY 50 line, biggest movers, sector scoreboard, per-sector prices + 1–2 headlines, flags for 52w / volume |
-| `monitor` | every 20 min ~08:30–16:30 IST | New news, deal-keyword 🚨 alerts, ± moves, volume spikes, near 52-week high/low |
+| `monitor` | every 20 min ~08:30–16:30 IST | New news, **results/earnings** (PDF link + neutral summary), deal-keyword 🚨 alerts, price moves, volume spikes, near 52-week high/low |
 
 ---
 
