@@ -1,0 +1,116 @@
+# NSE sector watchlist — symbols use .NS suffix via prices module
+sectors:
+  - name: Defence
+    stocks:
+      - symbol: BEL
+        name: Bharat Electronics
+        query: "Bharat Electronics BEL"
+      - symbol: HAL
+        name: Hindustan Aeronautics
+        query: "Hindustan Aeronautics HAL"
+      - symbol: MAZDOCK
+        name: Mazagon Dock Shipbuilders
+        query: "Mazagon Dock MAZDOCK"
+      - symbol: SOLARINDS
+        name: Solar Industries
+        query: "Solar Industries India SOLARINDS"
+      - symbol: BDL
+        name: Bharat Dynamics
+        query: "Bharat Dynamics BDL"
+
+  - name: Realty
+    stocks:
+      - symbol: DLF
+        name: DLF Limited
+        query: "DLF Limited realty"
+      - symbol: LODHA
+        name: Macrotech Developers Lodha
+        query: "Lodha Macrotech Developers"
+      - symbol: GODREJPROP
+        name: Godrej Properties
+        query: "Godrej Properties GODREJPROP"
+      - symbol: PRESTIGE
+        name: Prestige Estates
+        query: "Prestige Estates Projects"
+      - symbol: OBEROIRLTY
+        name: Oberoi Realty
+        query: "Oberoi Realty OBEROIRLTY"
+
+  - name: Semiconductor / IT / AI
+    stocks:
+      - symbol: CGPOWER
+        name: CG Power and Industrial
+        query: "CG Power CGPOWER"
+      - symbol: KAYNES
+        name: Kaynes Technology
+        query: "Kaynes Technology KAYNES"
+      - symbol: DIXON
+        name: Dixon Technologies
+        query: "Dixon Technologies DIXON"
+      - symbol: TATAELXSI
+        name: Tata Elxsi
+        query: "Tata Elxsi TATAELXSI"
+      - symbol: INFY
+        name: Infosys
+        query: "Infosys INFY"
+      - symbol: TCS
+        name: Tata Consultancy Services
+        query: "TCS Tata Consultancy"
+
+  - name: EV
+    stocks:
+      # Tata Motors demerged; NSE/Yahoo now list TMPV (passenger) — was TATAMOTORS.NS
+      - symbol: TMPV
+        name: Tata Motors Passenger Vehicles
+        query: "Tata Motors TMPV"
+      - symbol: "M&M"
+        name: Mahindra & Mahindra
+        query: "Mahindra Mahindra M&M"
+      - symbol: TVSMOTOR
+        name: TVS Motor
+        query: "TVS Motor TVSMOTOR"
+      - symbol: SONACOMS
+        name: Sona BLW Precision
+        query: "Sona Comstar SONACOMS"
+
+  - name: Telecom
+    stocks:
+      - symbol: BHARTIARTL
+        name: Bharti Airtel
+        query: "Bharti Airtel BHARTIARTL"
+      - symbol: INDUSTOWER
+        name: Indus Towers
+        query: "Indus Towers INDUSTOWER"
+      - symbol: HFCL
+        name: HFCL Limited
+        query: "HFCL Limited"
+
+  - name: Energy
+    stocks:
+      - symbol: RELIANCE
+        name: Reliance Industries
+        query: "Reliance Industries RELIANCE"
+      - symbol: NTPC
+        name: NTPC Limited
+        query: "NTPC Limited"
+      - symbol: TATAPOWER
+        name: Tata Power
+        query: "Tata Power TATAPOWER"
+      - symbol: ADANIPOWER
+        name: Adani Power
+        query: "Adani Power ADANIPOWER"
+      - symbol: SUZLON
+        name: Suzlon Energy
+        query: "Suzlon Energy SUZLON"
+
+  - name: FMCG
+    stocks:
+      - symbol: ITC
+        name: ITC Limited
+        query: "ITC Limited FMCG"
+      - symbol: HINDUNILVR
+        name: Hindustan Unilever
+        query: "Hindustan Unilever HUL"
+      - symbol: VBL
+        name: Varun Beverages
+        query: "Varun Beverages VBL"

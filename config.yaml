@@ -1,0 +1,49 @@
+# Alert / digest thresholds and runtime settings
+
+price_move_threshold_pct: 4.0   # day % change to trigger a price alert
+re_alert_step_pct: 4.0          # further move needed before re-alerting same stock
+volume_spike_ratio: 2.5         # last vol >= ratio * 20-day avg volume
+near_52w_pct: 2.0               # within this % of 52-week high/low
+
+deal_keywords:
+  - order
+  - contract
+  - deal
+  - wins
+  - bags
+  - acquisition
+  - awarded
+  - LOI
+  - tender
+
+digest_times:
+  - "08:00"
+  - "18:00"
+
+market_hours:
+  start: "09:15"
+  end: "15:30"
+  tz: Asia/Kolkata
+
+index_symbol: "^NSEI"           # NIFTY 50 on Yahoo Finance
+
+price_period: "1y"
+price_interval: "1d"
+
+news:
+  lookback: "1d"                # Google News when: window
+  max_headlines_per_stock: 2
+  retention_days: 5             # prune seen_news older than this
+
+http:
+  timeout: 20
+  retries: 3
+  pause_seconds: 1.5
+
+# Each alert type can be toggled independently (all on by default)
+alerts:
+  enable_news: true
+  enable_price_move: true
+  enable_volume_spike: true
+  enable_near_52w: true
+  enable_deal_keywords: true

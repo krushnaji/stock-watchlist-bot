@@ -1,0 +1,38 @@
+# Twice-daily NSE sector digest → Telegram
+# Note: GitHub Actions cron can be delayed by a few minutes (sometimes more) under load.
+
+name: Digest
+
+on:
+  schedule:
+    # 08:00 IST = 02:30 UTC ; 18:00 IST = 12:30 UTC (IST = UTC+5:30)
+    - cron: "30 2 * * 1-5"
+    - cron: "30 12 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run digest
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python -m src.main --mode digest
+
+      # Digest is read-only for state — no commit step needed
