@@ -70,6 +70,9 @@ def headline_mentions_stock(title: str, symbol: str, name: str) -> bool:
         token = part.strip().lower()
         if len(token) < 4 or token in _NAME_SKIP:
             continue
+        # Avoid "Idea" name token matching English "idea" for ticker IDEA
+        if token == sym_l:
+            continue
         if token in t:
             return True
     return False
