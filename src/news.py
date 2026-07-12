@@ -82,11 +82,21 @@ def _http_get(url: str, timeout: int, retries: int, pause: float) -> str | None:
     return None
 
 
-def fetch_news_for_stock(stock: Stock, cfg: AppConfig) -> list[NewsItem]:
-    """Fetch and parse Google News RSS for one stock query."""
+def search_google_news(
+    query: str,
+    lookback: str,
+    cfg: AppConfig,
+    stock: Stock,
+    *,
+    apply_stock_filter: bool = True,
+) -> list[NewsItem]:
+    """
+    Fetch Google News RSS for an arbitrary query, attached to `stock`.
+    When apply_stock_filter=True, drop sports noise and non-matching headlines.
+    """
     url = GOOGLE_NEWS_RSS.format(
-        query=quote_plus(stock.query),
-        lookback=cfg.news_lookback,
+        query=quote_plus(query),
+        lookback=lookback,
     )
     body = _http_get(url, cfg.http_timeout, cfg.http_retries, cfg.http_pause_seconds)
     if not body:
@@ -95,7 +105,7 @@ def fetch_news_for_stock(stock: Stock, cfg: AppConfig) -> list[NewsItem]:
     try:
         feed = feedparser.parse(body)
     except Exception as exc:  # noqa: BLE001
-        logger.error("feedparser failed for %s: %s", stock.symbol, exc)
+        logger.error("feedparser failed for query %s: %s", query[:60], exc)
         return []
 
     items: list[NewsItem] = []
@@ -130,25 +140,31 @@ def fetch_news_for_stock(stock: Stock, cfg: AppConfig) -> list[NewsItem]:
             )
         )
 
-    # Newest first, then drop sports noise + headlines that don't name this stock
     items.sort(key=lambda n: n.published or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+
+    if not apply_stock_filter:
+        return items
+
     filtered: list[NewsItem] = []
     for item in items:
         if is_irrelevant_headline(item.title):
-            logger.debug("Drop noise headline for %s: %s", stock.symbol, item.title[:80])
             continue
         if not headline_mentions_stock(item.title, stock.symbol, stock.name):
-            logger.debug("Drop unrelated headline for %s: %s", stock.symbol, item.title[:80])
             continue
         filtered.append(item)
-    if len(filtered) != len(items):
-        logger.info(
-            "News filter %s: %d → %d relevant",
-            stock.symbol,
-            len(items),
-            len(filtered),
-        )
     return filtered
+
+
+def fetch_news_for_stock(stock: Stock, cfg: AppConfig) -> list[NewsItem]:
+    """Fetch and parse Google News RSS for one stock query."""
+    items = search_google_news(
+        stock.query,
+        cfg.news_lookback,
+        cfg,
+        stock,
+        apply_stock_filter=True,
+    )
+    return items
 
 
 def fetch_all_news(cfg: AppConfig, stocks: list[Stock] | None = None) -> dict[str, list[NewsItem]]:

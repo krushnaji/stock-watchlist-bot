@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
 from src.config import AppConfig
+from src.earnings import fetch_all_earnings_hints, format_hint_line
 from src.news import NewsItem, fetch_all_news
 from src.prices import PriceSnapshot, fetch_prices
 from src.screener import screener_md_link
@@ -65,6 +66,7 @@ def build_digest(cfg: AppConfig) -> list[str]:
     """
     prices = fetch_prices(cfg)
     news_map = fetch_all_news(cfg)
+    earnings_map = fetch_all_earnings_hints(cfg)
 
     tz = ZoneInfo(cfg.market_tz)
     now_str = datetime.now(tz).strftime("%Y-%m-%d %H:%M %Z")
@@ -137,6 +139,19 @@ def build_digest(cfg: AppConfig) -> list[str]:
         lines.append("  _n/a_")
     lines.append("")
 
+    # --- Upcoming results (only stocks with a free-source hint) ---
+    if earnings_map:
+        upcoming = sorted(
+            earnings_map.values(),
+            key=lambda h: h.event_date or date.max,
+        )
+        lines.append("*📅 Results calendar (est., from free news)*")
+        for h in upcoming:
+            lines.append(
+                f"  • `{escape_md(h.symbol)}` {escape_md(h.label)}"
+            )
+        lines.append("")
+
     # --- Per sector ---
     for sector_name, sector_stocks in cfg.sectors.items():
         lines.append(f"*{escape_md(sector_name)}*")
@@ -145,16 +160,20 @@ def build_digest(cfg: AppConfig) -> list[str]:
             scr = screener_md_link(st.symbol)
             if not snap or snap.current is None:
                 lines.append(f"  • {escape_md(st.symbol)} — _no data_ · {scr}")
-                continue
-            emoji = _change_emoji(snap.day_change_pct)
-            line = (
-                f"  • *{escape_md(st.symbol)}* {_fmt_price(snap.current)} "
-                f"{emoji} {_fmt_pct(snap.day_change_pct)} · {scr}"
-            )
-            flag = _flag_line(snap, cfg)
-            if flag:
-                line += f"\n    _{escape_md(flag)}_"
-            lines.append(line)
+            else:
+                emoji = _change_emoji(snap.day_change_pct)
+                line = (
+                    f"  • *{escape_md(st.symbol)}* {_fmt_price(snap.current)} "
+                    f"{emoji} {_fmt_pct(snap.day_change_pct)} · {scr}"
+                )
+                flag = _flag_line(snap, cfg)
+                if flag:
+                    line += f"\n    _{escape_md(flag)}_"
+                lines.append(line)
+
+            hint = earnings_map.get(st.symbol)
+            if hint:
+                lines.append(format_hint_line(hint))
 
             headlines = news_map.get(st.symbol) or []
             for hl in _headline_links(headlines, cfg.max_headlines_per_stock):
