@@ -100,23 +100,80 @@ def headline_is_result(title: str, keywords: Iterable[str] | None = None) -> boo
 
 
 def headline_mentions_stock(title: str, symbol: str, name: str) -> bool:
-    """Require the headline to mention this stock (cuts Google News false positives)."""
+    """
+    Require the headline to mention this stock (cuts Google News false positives).
+    Short / common-word tickers (e.g. IDEA) are matched case-sensitively so English
+    words like "idea" do not count.
+    """
     if not title:
         return False
     t = title.lower()
-    sym = (symbol or "").lower().strip()
-    if sym and len(sym) >= 2 and re.search(rf"\b{re.escape(sym)}\b", t, re.I):
-        return True
-    # Name tokens (skip tiny words)
+    sym = (symbol or "").strip()
+    sym_l = sym.lower()
+
+    # Tickers that are also common English words — require uppercase ticker or company name
+    common_word_tickers = {
+        "IDEA",
+        "GAIN",
+        "LAND",
+        "BANK",
+        "POWER",
+        "TECH",
+        "AUTO",
+        "HOME",
+        "CARE",
+    }
+    if sym and len(sym) >= 2:
+        if sym.upper() in common_word_tickers or len(sym) <= 4:
+            if re.search(rf"\b{re.escape(sym.upper())}\b", title):
+                return True
+        elif re.search(rf"\b{re.escape(sym_l)}\b", t):
+            return True
+
+    # Name tokens (skip tiny / generic words)
+    skip = {
+        "limited",
+        "india",
+        "technologies",
+        "industries",
+        "motors",
+        "power",
+        "travel",
+        "analytics",
+        "and",
+        "the",
+        "ltd",
+        "beverages",
+        "coffee",
+        "space",
+        "allied",
+    }
     for part in re.split(r"[\s&/,.\-]+", name or ""):
         token = part.strip().lower()
-        if len(token) < 4:
-            continue
-        if token in {"limited", "india", "technologies", "industries", "motors", "power"}:
+        if len(token) < 4 or token in skip:
             continue
         if token in t:
             return True
     return False
+
+
+def is_irrelevant_headline(title: str) -> bool:
+    """Drop sports / entertainment noise that Google News often mixes in."""
+    if not title:
+        return True
+    return bool(
+        re.search(
+            r"\b("
+            r"T20I?|IPL|cricket|football|soccer|tennis|badminton|"
+            r"premier league|la liga|nba|nhl|world cup|asian cup|"
+            r"test match|\bODI\b|live streaming|live telecast|"
+            r"how to watch|vs eng|vs aus|vs pak|vs nz|ind vs|"
+            r"movie review|box office|netflix show|spotify"
+            r")\b",
+            title,
+            re.I,
+        )
+    )
 
 
 def _http_get_bytes(

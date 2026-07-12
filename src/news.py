@@ -15,6 +15,8 @@ import requests
 
 from src.config import AppConfig, Stock
 
+from src.results import headline_mentions_stock, is_irrelevant_headline
+
 logger = logging.getLogger(__name__)
 
 GOOGLE_NEWS_RSS = (
@@ -129,9 +131,25 @@ def fetch_news_for_stock(stock: Stock, cfg: AppConfig) -> list[NewsItem]:
             )
         )
 
-    # Newest first
+    # Newest first, then drop sports noise + headlines that don't name this stock
     items.sort(key=lambda n: n.published or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
-    return items
+    filtered: list[NewsItem] = []
+    for item in items:
+        if is_irrelevant_headline(item.title):
+            logger.debug("Drop noise headline for %s: %s", stock.symbol, item.title[:80])
+            continue
+        if not headline_mentions_stock(item.title, stock.symbol, stock.name):
+            logger.debug("Drop unrelated headline for %s: %s", stock.symbol, item.title[:80])
+            continue
+        filtered.append(item)
+    if len(filtered) != len(items):
+        logger.info(
+            "News filter %s: %d → %d relevant",
+            stock.symbol,
+            len(items),
+            len(filtered),
+        )
+    return filtered
 
 
 def fetch_all_news(cfg: AppConfig, stocks: list[Stock] | None = None) -> dict[str, list[NewsItem]]:
