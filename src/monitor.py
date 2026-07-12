@@ -12,8 +12,8 @@ from src.results import (
     enrich_result_item,
     format_result_alert,
     headline_is_result,
-    headline_mentions_stock,
 )
+from src.headlines import headline_mentions_stock
 from src.screener import screener_md_link
 from src.state import (
     is_market_open,

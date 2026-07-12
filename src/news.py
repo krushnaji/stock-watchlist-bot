@@ -14,8 +14,7 @@ import feedparser
 import requests
 
 from src.config import AppConfig, Stock
-
-from src.results import headline_mentions_stock, is_irrelevant_headline
+from src.headlines import headline_mentions_stock, is_irrelevant_headline
 
 logger = logging.getLogger(__name__)
 
