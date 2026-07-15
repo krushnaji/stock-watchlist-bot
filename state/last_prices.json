@@ -15,6 +15,7 @@
     "last_alert_date": "2026-07-15",
     "near_high_alerted": false,
     "near_low_alerted": false,
+    "price_alerted_pct": 5.529563981161316,
     "volume_alerted": false
   },
   "GRSE": {
