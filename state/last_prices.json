@@ -47,7 +47,7 @@
     "near_high_alerted": true,
     "near_low_alerted": false,
     "price_alerted_pct": 5.209410118809992,
-    "volume_alerted": false
+    "volume_alerted": true
   },
   "PARAS": {
     "last_alert_date": "2026-08-13",
@@ -59,6 +59,7 @@
     "last_alert_date": "2026-08-13",
     "near_high_alerted": false,
     "near_low_alerted": false,
+    "price_alerted_pct": -5.07693511838392,
     "volume_alerted": false
   },
   "RAYMONDREL": {
