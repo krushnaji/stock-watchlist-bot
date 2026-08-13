@@ -34,7 +34,7 @@
     "near_high_alerted": false,
     "near_low_alerted": false,
     "price_alerted_pct": -6.330196749358426,
-    "volume_alerted": false
+    "volume_alerted": true
   },
   "MEESHO": {
     "last_alert_date": "2026-08-13",
