@@ -27,6 +27,7 @@
     "last_alert_date": "2026-08-14",
     "near_high_alerted": false,
     "near_low_alerted": false,
+    "price_alerted_pct": 4.293115572760126,
     "volume_alerted": false
   },
   "KRISHNADEF": {
@@ -50,7 +51,7 @@
   },
   "PARAS": {
     "last_alert_date": "2026-08-14",
-    "near_high_alerted": false,
+    "near_high_alerted": true,
     "near_low_alerted": false,
     "volume_alerted": false
   },
