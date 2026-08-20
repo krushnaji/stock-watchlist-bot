@@ -15,6 +15,7 @@
     "last_alert_date": "2026-08-20",
     "near_high_alerted": false,
     "near_low_alerted": false,
+    "price_alerted_pct": 5.033311664805421,
     "volume_alerted": false
   },
   "GRSE": {
@@ -43,8 +44,9 @@
   },
   "NETWEB": {
     "last_alert_date": "2026-08-20",
-    "near_high_alerted": false,
+    "near_high_alerted": true,
     "near_low_alerted": false,
+    "price_alerted_pct": 4.4106594737166835,
     "volume_alerted": false
   },
   "PARAS": {
