@@ -56,8 +56,9 @@
   },
   "RATEGAIN": {
     "last_alert_date": "2026-08-21",
-    "near_high_alerted": false,
+    "near_high_alerted": true,
     "near_low_alerted": false,
+    "price_alerted_pct": 4.513904697847682,
     "volume_alerted": false
   },
   "RAYMONDREL": {
