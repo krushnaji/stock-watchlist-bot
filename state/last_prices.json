@@ -45,6 +45,7 @@
     "last_alert_date": "2026-08-21",
     "near_high_alerted": true,
     "near_low_alerted": false,
+    "price_alerted_pct": 4.496479650442577,
     "volume_alerted": false
   },
   "PARAS": {
@@ -70,6 +71,6 @@
     "near_high_alerted": false,
     "near_low_alerted": false,
     "price_alerted_pct": 8.344774181702427,
-    "volume_alerted": false
+    "volume_alerted": true
   }
 }
