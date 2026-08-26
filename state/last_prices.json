@@ -49,8 +49,9 @@
   },
   "PARAS": {
     "last_alert_date": "2026-08-26",
-    "near_high_alerted": false,
+    "near_high_alerted": true,
     "near_low_alerted": false,
+    "price_alerted_pct": 4.968174041931306,
     "volume_alerted": false
   },
   "RATEGAIN": {
