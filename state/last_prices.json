@@ -1,75 +1,74 @@
 {
   "BHARTIARTL": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
     "volume_alerted": false
   },
   "DIXON": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
     "volume_alerted": false
   },
   "FRACTAL": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
-    "price_alerted_pct": -7.233749186288549,
     "volume_alerted": false
   },
   "GRSE": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": true,
-    "price_alerted_pct": -4.279582327055307,
     "volume_alerted": false
   },
   "IDEA": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
+    "price_alerted_pct": 4.489438770203352,
     "volume_alerted": false
   },
   "KRISHNADEF": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
     "volume_alerted": false
   },
   "MEESHO": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
     "volume_alerted": false
   },
   "NETWEB": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
-    "price_alerted_pct": -6.760434727557469,
     "volume_alerted": false
   },
   "PARAS": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
+    "price_alerted_pct": 7.186552936230806,
     "volume_alerted": false
   },
   "RATEGAIN": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
     "volume_alerted": false
   },
   "RAYMONDREL": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
     "volume_alerted": false
   },
   "VINCOFE": {
-    "last_alert_date": "2026-10-23",
+    "last_alert_date": "2026-10-26",
     "near_high_alerted": false,
     "near_low_alerted": false,
     "volume_alerted": false
